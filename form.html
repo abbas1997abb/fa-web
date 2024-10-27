@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استشارات طبية - د. فاطمة الحسن</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+        header {
+            background-color: #070342;
+            color: white;
+            text-align: center;
+            padding: 1.5em 0;
+        }
+        .consultation-window {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 500px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #130227;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0dadec;
+        }
+        .success-message {
+            display: none;
+            color: rgb(189, 192, 233);
+            text-align: center;
+            margin-top: 20px;
+        }
+        .consultations-list {
+            display: none; /* إخفاء قائمة الاستشارات من العرض */
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 500px;
+        }
+        .consultation-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .reply-button {
+            background-color: #2196F3;
+            border: none;
+            color: white;
+            padding: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>استشارات طبية - د. فاطمة الحسن</h1>
+    <p>كلية طب جامعة المثنى، بكالوريوس طب وجراحة عامة</p>
+</header>
+
+<div class="consultation-window">
+    <h2>نافذة استشارات طبية</h2>
+    <form id="consultation-form" onsubmit="return submitForm()">
+        <label for="patient-name">اسم المريض</label>
+        <input type="text" id="patient-name" name="patient-name" required>
+
+        <label for="age">العمر</label>
+        <input type="number" id="age" name="age" required>
+
+        <label for="condition-type">نوع الحالة</label>
+        <input type="text" id="condition-type" name="condition-type" required>
+
+        <label for="phone">رقم الموبايل</label>
+        <input type="tel" id="phone" name="phone" required>
+
+        <button type="submit">إرسال</button>
+    </form>
+    <div class="success-message" id="success-message">
+        تم الإرسال بنجاح! سيتم الرد في أقرب وقت.
+    </div>
+    <button onclick="toggleConsultations()">عرض الاستشارات (للمدير فقط)</button> <!-- زر خاص للمدير -->
+</div>
+
+<div class="consultations-list" id="consultations-list">
+    <h2>الاستشارات المرسلة</h2>
+    <div id="consultations"></div>
+</div>
+
+<script>
+    function submitForm() {
+        // الحصول على البيانات من النموذج
+        const patientName = document.getElementById("patient-name").value;
+        const age = document.getElementById("age").value;
+        const conditionType = document.getElementById("condition-type").value;
+        const phone = document.getElementById("phone").value;
+
+        // تخزين الاستشارة في الـ Local Storage
+        const consultation = {
+            patientName: patientName,
+            age: age,
+            conditionType: conditionType,
+            phone: phone,
+            date: new Date().toLocaleString(),
+            reply: "" // مكان لتخزين الرد
+        };
+
+        // الحصول على الاستشارات الموجودة أو إنشاء مصفوفة جديدة
+        let consultations = JSON.parse(localStorage.getItem('consultations')) || [];
+        consultations.push(consultation);
+        localStorage.setItem('consultations', JSON.stringify(consultations));
+
+        // إظهار رسالة النجاح
+        document.getElementById("success-message").style.display = "block";
+        
+        // إعادة تعيين النموذج
+        document.getElementById("consultation-form").reset();
+        return false; // منع إعادة تحميل الصفحة
+    }
+
+    function toggleConsultations() {
+        const consultationsList = document.getElementById("consultations-list");
+        const consultationsContainer = document.getElementById("consultations");
+        consultationsContainer.innerHTML = ''; // إعادة تعيين المحتوى
+
+        const consultations = JSON.parse(localStorage.getItem('consultations')) || [];
+
+        if (consultationsList.style.display === "none" || consultationsList.style.display === "") {
+            consultationsList.style.display = "block";
+
+            consultations.forEach((consultation, index) => {
+                const consultationDiv = document.createElement("div");
+                consultationDiv.className = "consultation-item";
+                consultationDiv.innerHTML = `
+                    <strong>اسم المريض:</strong> ${consultation.patientName}<br>
+                    <strong>العمر:</strong> ${consultation.age}<br>
+                    <strong>نوع الحالة:</strong> ${consultation.conditionType}<br>
+                    <strong>رقم الموبايل:</strong> ${consultation.phone}<br>
+                    <strong>التاريخ:</strong> ${consultation.date}<br>
+                    <strong>الرد:</strong> ${consultation.reply || "لا يوجد رد بعد."}<br>
+                    <button class="reply-button" onclick="replyConsultation(${index})">رد على الاستشارة</button>
+                `;
+                consultationsContainer.appendChild(consultationDiv);
+            });
+        } else {
+            consultationsList.style.display = "none";
+        }
+    }
+
+    function replyConsultation(index) {
+        const reply = prompt("اكتب الرد على الاستشارة:");
+        if (reply) {
+            let consultations = JSON.parse(localStorage.getItem('consultations')) || [];
+            consultations[index].reply = reply;
+            localStorage.setItem('consultations', JSON.stringify(consultations));
+            alert("تم إرسال الرد بنجاح.");
+            toggleConsultations(); // تحديث قائمة الاستشارات
+        }
+    }
+</script>
+
+</body>
+</html>
